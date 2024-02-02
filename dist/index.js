@@ -8,6 +8,7 @@ const express_session_1 = __importDefault(require("express-session"));
 const cors_1 = __importDefault(require("cors"));
 const dotenv_1 = __importDefault(require("dotenv"));
 const mainApp_1 = require("./mainApp");
+const body_parser_1 = __importDefault(require("body-parser"));
 const dbConfig_1 = require("./utils/dbConfig");
 dotenv_1.default.config();
 const connect_mongodb_session_1 = __importDefault(require("connect-mongodb-session"));
@@ -18,6 +19,7 @@ const store = new MongoDBStore({
 });
 const app = (0, express_1.default)();
 const portServer = process.env.PORT;
+app.use(body_parser_1.default.json());
 const port = parseInt(portServer);
 app.use((req, res, next) => {
     res.header("Access-Control-Allow-Origin", "http://localhost:5173");

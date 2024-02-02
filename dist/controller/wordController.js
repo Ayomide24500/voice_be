@@ -12,63 +12,109 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.createWord = void 0;
-const nodemailer_1 = __importDefault(require("nodemailer"));
+exports.getOneUser = exports.getAllUser = exports.sendEmails = exports.createUser = void 0;
+const bcrypt_1 = __importDefault(require("bcrypt"));
 const email_1 = require("../utils/email");
 const wordModel_1 = __importDefault(require("../model/wordModel"));
-const contactModel_1 = __importDefault(require("../model/contactModel"));
-const createWord = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const createUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const { word, contacts } = req.body;
-        if (!Array.isArray(contacts)) {
-            return res.status(400).json({
-                msg: "Contacts should be an array",
-            });
-        }
-        // Create a new word
-        const createdWord = yield wordModel_1.default.create({ word });
-        // Create contacts and associate them with the created word
-        const createdContacts = yield contactModel_1.default.create(contacts.map((contact) => ({
-            email: contact,
-            wordId: createdWord._id,
-        })));
-        // Send a simple text email
-        const transporter = nodemailer_1.default.createTransport({
-            service: "gmail",
-            auth: {
-                user: "ayomideadisa83@gmail.com",
-                pass: "Ayomide1234",
-            },
+        const { email, password, emails, voiceKey } = req.body;
+        const salt = yield bcrypt_1.default.genSalt(10);
+        const hashed = yield bcrypt_1.default.hash(password, salt);
+        const user = yield wordModel_1.default.create({
+            email,
+            password: hashed,
+            emails,
+            voiceKey,
         });
-        // Define the message
-        const messageOptions = {
-            from: "ayomideadisa83@gmail.com",
-            to: `${contacts.join(",")}`,
-            subject: "New Word Received",
-            text: `You received the word: ${createdWord.word} - ID: ${createdWord._id}`,
-        };
-        try {
-            // Send the simple text email
-            const info = yield transporter.sendMail(messageOptions);
-            console.log("Simple Email sent: ", info.response);
-            // Send the customized email using verifiedEmail function
-            yield (0, email_1.verifiedEmail)({
-                _id: createdWord._id,
-                email: contacts[0],
-                userName: "User",
+        return res.status(201).json({
+            msg: "User created successfully",
+            status: 201,
+            data: user,
+        });
+    }
+    catch (error) {
+        return res.status(404).json({
+            msg: "Error creating user",
+            status: 404,
+        });
+    }
+});
+exports.createUser = createUser;
+const sendEmails = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { userID } = req.params;
+        console.log(req.params);
+        console.log(userID);
+        const { voiceKey } = req.body;
+        const user = yield wordModel_1.default.findById(userID);
+        console.log(user);
+        if (user && voiceKey === user.voiceKey) {
+            for (const i of user.emails) {
+                console.log(i);
+                (0, email_1.sendEmail)(i);
+            }
+            return res.status(200).json({
+                msg: "User created successfully",
+                status: 201,
+                data: user,
             });
-            // Response to the client
-            res.json({ success: true, message: "Emails sent successfully" });
         }
-        catch (error) {
-            console.error("Error sending email: ", error);
-            res.status(404).json({ success: false, message: "Failed to send email" });
+        else {
+            return res.status(404).json({
+                msg: "User not found",
+                status: 404,
+            });
         }
     }
     catch (error) {
         return res.status(404).json({
-            msg: "error creating word",
+            msg: "Error creating user",
+            status: 404,
         });
     }
 });
-exports.createWord = createWord;
+exports.sendEmails = sendEmails;
+const getAllUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const user = yield wordModel_1.default.find();
+        return res.status(200).json({
+            msg: "User created successfully",
+            status: 200,
+            data: user,
+        });
+    }
+    catch (error) {
+        return res.status(404).json({
+            msg: "Error creating user",
+            status: 404,
+        });
+    }
+});
+exports.getAllUser = getAllUser;
+const getOneUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { email } = req.body;
+        const user = yield wordModel_1.default.findOne({ email });
+        if (user) {
+            return res.status(200).json({
+                msg: "User created successfully",
+                status: 200,
+                data: user,
+            });
+        }
+        else {
+            return res.status(404).json({
+                msg: "Error getting user",
+                status: 404,
+            });
+        }
+    }
+    catch (error) {
+        return res.status(404).json({
+            msg: "Error creating user",
+            status: 404,
+        });
+    }
+});
+exports.getOneUser = getOneUser;
