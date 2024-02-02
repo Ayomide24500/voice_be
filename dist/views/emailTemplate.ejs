@@ -1,0 +1,24 @@
+<!-- emailTemplate.ejs -->
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Email Template</title>
+  </head>
+  <body>
+    <div>
+      <h2>Word Received!</h2>
+      <p>Dear <%= userName %>,</p>
+      <p>You've received the word: <strong><%= receivedWord %></strong></p>
+      <p>Click the link below to verify your account:</p>
+      <a href="<%= verificationLink %>">Verify Your Account</a>
+      <p>
+        If the link doesn't work, you can copy and paste the following URL into
+        your browser:
+      </p>
+      <p><%= verificationLink %></p>
+      <p>Thank you for using our service!</p>
+    </div>
+  </body>
+</html>
